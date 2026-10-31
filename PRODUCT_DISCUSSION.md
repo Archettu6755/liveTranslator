@@ -1,12 +1,16 @@
 # 日语 VTuber 直播翻译：产品讨论与行为方案
 
-更新日期：2026-10-27
+更新日期：2026-10-28
 
 本文是新方案的唯一维护文档，统一保存产品边界、技术选择、明确行为、参考源和未决问题。后续讨论直接更新本文，不再拆分同类文档。
 
 [LIVE_TRANSLATOR_RESEARCH.md](archived/LIVE_TRANSLATOR_RESEARCH.md) 已于 2026-09-09 原文归档，内容保持不变；其中的旧产品范围、技术栈和部署决定不自动成为新方案要求。`archived/` 与 `Transfer/` 同样保持历史资料定位。归档研究中的旧目录称呼按其写作时的仓库布局理解，不作为当前路径或执行指令。
 
 当前讨论已归并记录，但本文不是已经验证完毕的实施规格：
+
+- 2026-10-28 最新交付纠正：用户要求完整、自带运行时的 Windows 客户端，唯一外部环境前置是 ASR 模型配置；不能以需要本机 Python/uv/Conda/Node 的开发版代替交付。第 24 节记录实际完整包、隔离验证与适用边界，第 23 节仅保留此前开发过程。
+
+- 2026-10-28 接手 Claude 中断的非模型工作：在当前 Windows worktree 补齐 Electron 开发版、宿主通信、翻译 HTTP 执行、协议和检查入口。真实 ASR 仍未配置，本轮不下载模型或调用外部翻译 API。当前代码与旧原型的差异及实测范围见第 23 节；第 17、18 节的旧命令与测试数字不适用于当前 `core/`。
 
 - 2026-10-27 补齐近期讨论：优先本地 ASR＋低价云端翻译，云端 ASR 仅作可选路线；补录云端 ASR 费用、Index 公共 API、Hy-SimulMT 的适用边界。第 21 节提供同步清单与整体计划索引；模型和供应商仍未最终选定，未进行真实接入。
 
@@ -604,7 +608,7 @@ Windows 持久化用户 PATH 已包含 `C:\Users\19054\.local\bin`，但当前 W
 
 ## 19. 桌面外壳、进程职责与交付边界
 
-状态：桌面技术沿用 2026-10-25 推荐，尚未实现；部署位置按 2026-10-27 用户决定更新为 Windows 桌面＋WSL2 Python 核心/ASR，纯 Windows 推理是 TODO。当前 Python 模拟字幕原型继续保留；本节不要求立即迁移、安装工具或接入真实模型。WSL2 仍是唯一主要开发入口。模型与翻译路线重新评估见第 20 节；本节不据 Nola 或 Voxt 推导最终模型选择。
+历史状态：本节记录截至 2026-10-27 的推荐方案与当时未实施的部分。2026-10-28 用户要求接续当前 Windows 目录中 Claude 未完成的非模型工作，开发版的实际进程位置、已实现接口及验证范围见第 23 节。本节保留 Windows 桌面＋WSL2 Qwen/vLLM 的真实模型部署建议；当前开发版不证明该模型路线已经接入，也不要求现在配置 ASR。
 
 ### A. 桌面技术比较与推荐
 
@@ -612,7 +616,7 @@ Windows 持久化用户 PATH 已包含 `C:\Users\19054\.local\bin`，但当前 W
 
 | 方案 | 对本项目的适配与代价 | 当前判断 |
 | --- | --- | --- |
-| Electron＋React＋TypeScript | 主进程、受限 renderer 和子进程职责可分开；当前 Python 核心放在 WSL2，私有 Windows Python 是后续选项。Electron/Node 运行时会增加包体、内存和更新维护成本，具体影响须实测 | 推荐基线；尚未实施 |
+| Electron＋React＋TypeScript | 主进程、受限 renderer 和子进程职责可分开；原推荐的 WSL2 核心分工与本轮 Windows 非模型开发版需分开判断。Electron/Node 运行时会增加包体、内存和更新维护成本，具体影响须实测 | 已有非模型开发版，见第 23 节；正式发布与真实模型尚待验收 |
 | Tauri | Web 前端可配原生宿主；Windows 开发/打包会引入 Rust 工具链与宿主桥接工作。可作为后续比较项，不以未实测包体数字决胜 | 暂不选作基线。[前置条件](https://v2.tauri.app/start/prerequisites/)、[Windows 安装包](https://v2.tauri.app/distribute/windows-installer/) |
 | WebUI | 界面迭代可复用 Web 技术，但本项目仍需桌面窗口/overlay、应用发现、音频采集、进程生命周期和受控本地接口；单有网页界面不能提供这些宿主能力 | 不作为首选外壳；若后续提出完整宿主方案可复评 |
 | .NET 桌面 | 可自包含部署运行时，适合 Windows 原生界面；仍需通过 IPC 调用 Python 核心，并维护另一套界面语言与状态映射 | 可行备选，不作为当前推荐。[.NET 部署](https://learn.microsoft.com/en-us/dotnet/core/deploying/) |
@@ -658,7 +662,7 @@ Nola 的原代码标注 GPL-3.0-only；直接 fork 是附条件备选，须先�
 2. **采集与跨环境贯通。** 获准后在 Windows 验证应用发现及 process loopback，必要时评估 helper；贯通 Windows 音频输入、WSL 字幕核心/模拟 ASR 与字幕返回，验证启动、断连、停止排空及恢复。Windows 私有 Python/ASR 打包不列首版前置。
 3. **获明确授权后的真实模型验收。** 根据第 20 节的模型比较结果选定候选，再验证流式识别、GPU 和长会话、日语质量、翻译质量/费用/延迟及停止恢复。模型下载、真实模型接入和付费 API 使用均须有明确任务授权；本轮文档授权不包含这些操作。
 
-截至本节更新，未实现 Electron 外壳或 JSONL IPC，未运行 npm/Node 构建命令，未安装工具、下载模型、访问 Windows 或调用 API。README 与现有 Python/Qt 原型说明保持原样；现有命令记录只代表既有入口，不据本节新增命令。
+截至本节原始更新的 2026-10-27，未实现 Electron 外壳或 JSONL IPC，未运行 npm/Node 构建命令，未安装工具、下载模型、访问 Windows 或调用 API。此为历史边界；2026-10-28 后续授权实施的结果和新命令见第 23 节及根目录 README。
 
 ## 20. 2026-10-25 模型、运行时和翻译路线重新评估
 
@@ -784,7 +788,7 @@ Nola 的 Microsoft 适配指向正式 Translator 服务，Google 适配指向 Cl
 | 语义与时间 | 音频样本时钟、ASR 原文版本、段落和字幕条分开；稳定语义短句先译，后续有限修订 | 第 7–10 节；阈值待真实日语验证 |
 | 字幕 | 前一条弱化、当前条突出；仅当前条原位修订，关键历史错误显式更正；跟上直播、有限历史、不截断全文 | 第 11 节；已有模拟原型，Windows 体验待验收 |
 | ASR 纠错 | 可在翻译请求内保守处理错字；保留原始识别，不补造丢失语音、否定、数字和人物 | 第 12 节；默认启用与否待测 |
-| 桌面架构 | 推荐 Electron＋React＋TypeScript；Python 核心唯一拥有分段/调度/版本；ASR 独立进程；宿主执行 HTTP 并管理密钥 | 第 19 节；推荐基线，外壳与 JSONL 尚未实现 |
+| 桌面架构 | Electron＋React＋TypeScript；Python 核心唯一拥有分段/调度/版本；ASR 独立进程；宿主执行 HTTP 并管理密钥 | 第 19 节为推荐依据，第 23 节记录已实现的非模型开发版 |
 | 开发和发布 | 自用优先；WSL2 开发并运行 Python 核心与 Qwen/vLLM，Conda 独立环境；Windows 只承担桌面与采集，不要求 Windows Python，不引入 Docker | 第 22 节；纯 Windows 推理及私有 Python 打包为 TODO |
 | 复用 | 定向提取 archived 工具与测试；吸收 Nola 的进程/多窗口设计、Voxt 的取消/生命周期处理；保留现有核心及 Qt 原型 | 第 16、19 节；不整仓恢复，不直接 fork 作为默认路线 |
 | 隐私和可靠性 | 默认不上传音频/保存录音；翻译文本发送边界明确；密钥仅后台；有界队列、可观察过载、拒绝迟到旧结果、停止排空 | 第 4、7–12、19 节及 AGENTS.md |
@@ -796,7 +800,7 @@ Nola 的 Microsoft 适配指向正式 Translator 服务，Google 适配指向 Cl
 
 本次仅更新产品文档及必要的协作规则引用，保留归档原文和已有代码；未安装环境、下载模型、调用推理 API 或操作 Windows。
 
-## 22. 2026-10-27 最新决定：自用优先，推荐 WSL 推理
+## 22. 2026-10-27 部署决定：自用优先，推荐 WSL 推理
 
 用户明确选择：项目偏向自用，希望利用已有 WSL 环境减少配置负担；Qwen/vLLM 的 WSL 实现作为推荐方案，纯 Windows 本地推理列为 TODO。本节取代第 19 节此前将“普通用户免 WSL”设为首版发布门槛的优先级。
 
@@ -812,3 +816,79 @@ Nola 的 Microsoft 适配指向正式 Translator 服务，Google 适配指向 Cl
 Nola 的经验保留为后续实现依据：它支持本地模型与第三方云服务，打包基础 Python，引擎运行时和模型可分开安装；这说明可以由应用管理依赖，不代表本项目现在必须承担该打包工作，也不消除 vLLM 的平台要求。来源：[Nola README](https://github.com/CerealAxis/Nola-Translator)、[Python 打包配置](https://github.com/CerealAxis/Nola-Translator/blob/main/package.json)、[基础 Python 构建](https://github.com/CerealAxis/Nola-Translator/blob/main/scripts/build-python-base.ps1)、[运行时清单](https://github.com/CerealAxis/Nola-Translator/blob/main/build/runtime-catalog.json)。上述为公开源码核对，不是本机安装验证。
 
 授权边界：本次为同步文档、提交和推送；不安装环境、不下载或接入模型、不调用付费 API、不操作 Windows 物理机。后续执行仍遵循对应任务授权。
+
+## 23. 2026-10-28 接手后的非模型桌面开发版
+
+本节记录先前开发阶段；用户随后明确该交付不足，完整客户端要求与实际产物以第 24 节为准。
+
+### A. 本轮范围与运行位置
+
+用户要求接续 Claude 在当前目录留下的未完成工作，并再次明确本轮不要求配置真实 ASR。范围是 Windows 机器上模型配置以外的开发：桌面界面、字幕核心、采集桥接、翻译执行接口、协议、测试和使用入口。未下载模型、未安装全局工具、未修改全局 PATH，也未调用外部翻译服务或付费 API。
+
+当前 worktree 为 `D:\live-translator`，沿用 uv 管理的 `core/.venv`。实际 Python 为 3.13.5，基础解释器来自 `D:\Anaconda`，不继承 base 的包；用户已确认可沿用该来源，后续仍用 uv 管理。桌面使用已有 Node.js 26.12.1、Electron 45.0.0、React 19.3.1、TypeScript 7.0.2 和 Vite 8.3.5。本轮没有迁移仓库，也未建立第二套开发 checkout。
+
+本轮 Python 核心和采集桥接在 Windows 运行，ASR 模拟服务为独立 Python 进程；它是非模型开发版的运行方式，不代表第 22 节的真实 Qwen/vLLM 已转为 Windows 原生，也不取消后续 WSL 模型部署建议。当前程序不会导入 `archived/` 或 `Transfer/`；旧 Qt 归档保持不变。第 17、18 节记录的是此前原型，不能将其代码或 124 项结果视为本轮已存在或已运行的检查。
+
+参考来源：本聊天的接手、uv 环境确认、继续实现及“不要求配置真实 ASR”说明；[开发环境声明](core/pyproject.toml)、[桌面依赖](desktop/package.json)、当前 worktree 实测。Claude 的历史会话已按用户要求备份在本机忽略的 `claude-context/`，仅作历史证据，不自动构成新执行授权。
+
+### B. 已实现的明确行为
+
+Electron 主进程管理 Windows Python 核心、模拟 ASR 进程、设置、系统密钥加密与翻译 HTTP。主窗口与独立透明悬浮窗共用核心快照；renderer 只传用户意图，不另建翻译调度。已启用 sandbox、contextIsolation、禁用 Node 集成、受控本地页面和 CSP，并检查 IPC 窗口、主 frame、URL、字段和权限。悬浮窗不能启动采集或修改服务设置。
+
+默认可以直接播放离线字幕演示，不启动 ASR 或采集设备。可选择已有的八个模拟场景；真实窗口和演示均经过同一 Python 状态、调度与显示路径。前一条弱化、当前条突出，只原位修订当前条；长结果按核心预算拆条，较窄窗口再按实际文字宽度分页，不以缩字或省略号代替全文。完整原文、译文、来源不完整标记与更正关联可在最多 50 条会话回看中查看；停止后清屏并保留回看，新会话清空上次回看。
+
+应用发现只枚举和简单预选，不试听。只有点击开始后才采集所选应用进程树，设备混音为手动备用；失败不自动扩大来源。浏览器应用不等于标签页。采集时间按样本位置记录，保留有效尾帧和显式缺口，采集与 ASR 队列有界，丢弃计数可观察。
+
+队列丢帧会按下一帧样本位置补记缺口，停止时用采集端的最终样本位置补记丢失尾帧，避免把过载当成连续音频。只有丢弃时长而无精确位置的 ASR 过载标记使用未知起点，不伪造第 0 毫秒来源。
+
+默认的“采集测试”使用 `scripted` ASR：它按声音活动展开预设日文，不识别实际讲话，并强制使用模拟翻译，不调用翻译 API。也提供外部已配置本地 ASR 服务的地址和令牌设置，当前不要求使用该选项；连接到预设服务时界面继续标明预设字幕。`qwen` 后端仍是明确占位，返回未配置错误。
+
+翻译可保持离线模拟，或由用户配置完整的兼容 Chat Completions 地址、模型、可选密钥和输出模式。默认纯译文模式，结构化 JSON 与保守纠错需主动选择。保存不请求服务；文本仅在实际会话需要翻译时发往指定接口。密钥由主进程通过系统加密保存，不返回 renderer，不传给 Python；界面密码框只作临时输入。系统加密不可用时不以明文降级。
+
+主进程单次执行核心给出的请求，不另建重试调度；并发最多 2、6 秒超时、回复体最多 256 KiB、不跟随重定向、不转发服务错误正文。核心保留每段一个在途请求和一个最新待处理版本，检查会话、请求 ID、源版本、锁定与显示期限；上下文与回看分别有预算。源段号递增，用常量大小的水位拒绝已经结束的旧段重放，不无限保存结束段 ID。
+
+停止以确认和排空完成为准，等待期间继续接收翻译返回。退出也等待受管进程真实结束，超时再终止。核心崩溃后清除失效字幕并提供手动重启，不自动恢复采集。Windows 数值依赖在启动标准输入线程前加载，避免本机出现的 NumPy 延迟加载卡住；输入采用有界非阻塞读取，退出时停止并等待输入线程，避免打开的父进程管道引起解释器异常退出。
+
+参考来源：[主进程](desktop/src/main/controller.ts)、[窗口及 IPC](desktop/src/main/app.ts)、[renderer](desktop/src/renderer/index.tsx)、[Python 宿主](core/src/live_translator/host.py)、[核心](core/src/live_translator/engine.py)、[采集](core/src/live_translator/audio/capture.py)、[机器协议](contracts/README.md) 及对应测试。上述为当前实现行为，不是识别或翻译质量结论。
+
+### C. 本轮实际验证与边界
+
+最终实际运行 `core\.venv\Scripts\python.exe scripts/verify.py --desktop-smoke`：65 项 Python 测试、7 项 Node 桌面测试全部通过，TypeScript 类型检查、桌面构建及 Electron 模拟检查通过。覆盖协议编解码与 Schema 示例一致性、乱序与重复、在途合并、锁定及更正、过载、缺口、长句、1000 段长会话的有界状态、队列丢帧与丢失尾帧、会话切换、停止排空、标准输入超限恢复、打开输入管道时正常退出，以及核心崩溃后恢复。另修复了 Windows 命令行继承旧编码时的中文输出问题；实际运行 `demo --list` 和八个 headless 场景，UTF-8 中文输出正常，全部场景结束于 idle。
+
+真实 Electron 检查运行了隐藏的 Windows 主窗口和悬浮窗：实际中文演示同步、renderer 无 Node 权限且处于隔离/沙箱、系统密钥加密保存、悬浮窗权限限制、窗口 API 控制、停止清屏、重启更换进程及退出后子进程关闭均通过。已查看截图，中文可读；隐藏窗口截图检查修正了后台绘制与快照不同步的问题。结果和截图位于本机忽略的 `artifacts/desktop-smoke/`。
+
+已实际运行受控应用采集测试：只采集播放短测试音的子进程，音频进入本机预设 ASR，再经本机假翻译 HTTP 接口返回中文并显示，停止排空通过；当次计数未见丢帧或音频缺口。该结果只证明基础进程采集与非模型链路连接，不证明长期稳定、真实识别、字幕质量或 API 成本。本轮未重测输出设备混音；Claude 历史测试记录与本轮结果分开保留。
+
+尚未验收：人工鼠标穿透、拖动、多屏和全屏直播兼容，长时间真实音频运行，WSL 跨环境接入，任何真实 ASR 模型、GPU、语音质量、翻译供应商质量/延迟/费用，以及安装包和更新。当前已可用的开发版入口是 `desktop` 下 `npm start`；安装步骤与不安装依赖的检查命令分开列在根目录 [README](README.md)。当前交付完成的是本轮非模型开发范围，不宣称第 22 节的真实直播首版完成。
+
+## 24. 2026-10-28 完整客户端：自带运行时，仅 ASR 模型配置外置
+
+### A. 用户纠正后的交付要求
+
+明确行为：普通用户拿到完整 Windows x64 便携包，解压后双击 `LiveTranslator.exe`，不安装 Python、uv、Anaconda、Conda、Node.js、npm、Electron 或 VC++ 运行库，不执行依赖安装命令。客户端设置和翻译服务凭据属于正常应用配置；真实 ASR 模型配置仍是唯一允许留在外部的环境前置，本轮不下载模型、不配置真实 ASR。
+
+开发机的 uv 虚拟环境与用户交付包分开。开发仍沿用当前 Windows worktree 和 uv；交付时核心运行于包内私有 Windows CPython，不引用开发 `.venv`、Anaconda 或系统 Python。第 22 节原先把核心和 ASR 一起放在 WSL 的分工不再决定客户端启动；WSL 仅保留为后续真实 ASR 运行的候选位置。
+
+参考来源：本聊天用户对“开发版不符合完整客户端需求”的明确纠正；[打包脚本](scripts/package_windows.py)、[运行时路径选择](desktop/src/main/python.ts)、[包内资源启动](desktop/src/main/app.ts)。
+
+### B. 实际完整包与运行边界
+
+已生成 Windows x64 完整 ZIP，约 183 MB。当前产物路径、SHA-256、大小和验证报告由 [dist/latest-package.json](dist/latest-package.json) 记录；ZIP 旁保留 SHA-256 文件，包内有逐文件清单。普通用户保留完整解压目录，不单独拷贝 exe。客户端设置保存在当前 Windows 用户的应用数据目录，不随解压路径绑定。
+
+包中包含 Electron 45.0.0、编译后的主进程/preload/React 页面、私有 CPython 3.13.5、字幕核心及锁定的 comtypes 1.4.17、NumPy 2.5.4、soxr 1.1.0、websockets 17.3。CPython 使用官方嵌入发行包，下载固定 SHA-256 校验；通过 `python313._pth` 仅搜索包内标准库、生产依赖与核心。生产依赖按 `uv.lock` 选择，核对已安装 wheel 的 RECORD 完整性；开发虚拟环境、pytest、node_modules、历史会话、设置与真实密钥不进入客户端包。
+
+原生依赖也随包提供：CPython 的 vcruntime 库，以及锁定 NumPy wheel 已携带的 MSVCP140 库。soxr 按原名加载 MSVCP140，因此包中提供同一二进制的原名副本，并记录来源与哈希。已检查 61 个 exe/dll/pyd 的普通及延迟导入；除 Windows 11 自带系统 DLL/API set 外，没有未打包的运行库依赖。保留 Electron/Chromium、CPython、生产 wheel 的许可证与第三方告知，不编造项目授权结论。包尚未作发布者代码签名，自动更新和安装器形式仍未实现；完整便携 ZIP 已满足本轮无需外部客户端环境的交付要求。
+
+客户端不会在启动时执行 pip/npm/uv、修改全局 PATH 或安装系统组件。包内组件缺失时提示重新解压完整包，不回退到机器上的开发解释器。默认可直接演示；模拟采集服务同样使用包内 Python，无需 ASR 环境即可启动预设模拟器。真实 ASR 仍未配置，也不将模拟结果当作真实识别质量。
+
+参考来源：[Python 官方嵌入发行说明](https://docs.python.org/3.13/using/windows.html#the-embeddable-package)、[Electron 官方完整目录分发说明](https://www.electronjs.org/docs/latest/tutorial/application-distribution)、包内 `resources/runtime-manifest.json`、`FILE_MANIFEST.json`、许可证及本轮静态 DLL 检查。官方说明只支持分发方式，实际独立运行证据见下一节。
+
+### C. 本轮独立包验证
+
+实际运行构建脚本，将完整客户端复制到包含中文和空格的新目录，以打包 exe 启动；不是从 Node、npm 或开发目录启动。测试 PATH 只保留 Windows System32，并把 PYTHONHOME、PYTHONPATH、Conda、Node 和 uv 的开发环境变量指向不存在的位置。
+
+验证通过：`app.isPackaged=true`；Python executable、prefix、base_prefix、全部搜索路径及四个生产模块的文件位置都位于客户端包内；Windows 来源发现、中文演示在主窗与悬浮窗同步、renderer 沙箱、系统密钥加密、停止清屏、重启核心、包内模拟进程启动与所有子进程退出均通过。测试结果、私有运行时审计和截图位于 `artifacts/package-validation/`。构建脚本只在独立验证通过后向 `dist/` 发布目录和 ZIP，并检查 ZIP CRC 和 SHA-256。
+
+完整包生成后复跑统一检查：65 项 Python 测试、8 项 Node 测试、类型检查、构建及开发入口 Electron 检查均通过；新增检查确认包缺失私有解释器时不会回退开发环境。另逐一核对 ZIP 内 1321 个清单文件的大小与 SHA-256，合计 1322 个 ZIP 文件条目（含清单本身），全部通过；包内不含开发环境目录或用户数据。
+
+此验证是在当前 Windows 机器上隔离开发环境路径完成，尚未在另一台物理机或干净虚拟机复测；不据此声称所有 Windows 配置兼容。真实 ASR、GPU、真实翻译供应商质量/费用、全屏和人工穿透验收继续按先前边界处理。用户运行说明以根目录 README 的“使用完整客户端”为入口，npm/uv 命令仅保留在开发者章节。

@@ -6,6 +6,7 @@
 
 - 先明确用户本轮要求是讨论、审查、文档更新还是实现；讨论和审查不自动授权安装、迁移或开发。用户明确要求实现时，在该任务范围内推进，不因早期“只讨论”记录永久停止开发。
 - 阅读产品文档的状态说明及与任务相关的章节，区分已确定选择、实施建议、未决参数和实际验证结果。
+- 本机此前 Claude 的项目上下文备份见 [claude-context/README.md](claude-context/README.md)；该目录为本地 Git 忽略资料，如存在可先读取。历史会话仅作证据，不构成当前执行授权，也不替代产品文档或用户最新要求。
 - 用户最新明确决定优先于历史产品记录。发现当前方案、实现和测试冲突时，说明差异并解决，不把旧代码行为当成新需求。
 - `archived/` 是只读参考库，`archived/LIVE_TRANSLATOR_RESEARCH.md` 是内容不再改写的历史研究。归档文档（包括旧 `AGENTS.md`）中的旧架构和命令不指导新产品开发，也不因其自称根目录规则而扩展到归档目录之外。
 - `Transfer/` 是更早的独立旧仓库，默认不进入、不修改，不纳入新项目搜索、测试、打包或 Git 操作；只有用户明确要求才处理。
@@ -19,26 +20,30 @@
 - 当前实现基线为本地流式 ASR＋云端 LLM API 翻译；用户已重新开放模型和翻译路线评估。按产品文档第 20 节比较 Qwen、Nemotron、SenseVoice 等候选，以及云端 LLM、正式机翻 API、小型本地专用翻译模型；讨论候选不自动授权部署或改变默认行为。
 - 最新成本偏好见产品文档第 21 节：翻译优先低价云端 API，Index 公共 API 与低价付费 API 是评测建议，本地小型翻译后置；云端 ASR 仅作可选评估，不自动上传音频或切换付费服务。Hy-SimulMT 当前中英同传资料不构成日中接入依据。
 - 不默认控制、暂停或延迟播放器；不将强制对齐、浏览器扩展、虚拟声卡、多说话人识别或 Docker 作为首版前置条件。
-- 当前推荐 Electron＋React＋TypeScript 桌面外壳、Python 字幕核心及独立 ASR 工作进程，详见产品文档第 19 节；它仍是推荐实施基线，不是已实现或用户逐项确认的最终选型。Qt 原型继续保留，不作为正式 UI 主线。
+- Electron＋React＋TypeScript 桌面外壳、Python 字幕核心及独立 ASR 工作进程已有非模型开发版，实际状态见产品文档第 23 节；第 19 节保留原推荐依据。Qt 归档原型保持不变，不作为正式 UI 主线；开发版不代表真实 ASR 或正式发布已验收。
 - 当前模型基线是本地 Qwen 流式 ASR＋云端 LLM API；用户已授权重新评估 ASR/流式与翻译路线，尚未切换模型，也未授权下载模型、接 API 或部署本地翻译 LLM。Qwen 官方 streaming/vLLM 路径与 Windows 原生运行能力须分开判断；不得把更换桌面 UI 说成去掉 WSL。
-- 精确采集封装、IPC 字段、打包/更新工具、模型和翻译供应商、Python 版本仍待验证或决定。第 19 节列出的 Electron、JSONL、Win32 process loopback 都是推荐/候选，不等于当前代码已有实现。
+- 当前已实现的采集、IPC 字段及实测运行时见产品文档第 23、24 节和 `contracts/`；第 19 节的未实施表述按其历史日期理解。用户最新要求交付自带 Electron、Python 核心和采集依赖的完整 Windows 客户端，不能以需要 uv/Conda/Node 的开发启动命令代替交付；真实 ASR 模型配置是唯一允许留给外部的环境前置。
 
-- 最新部署决定见产品文档第 22 节：项目自用优先，Windows 桌面＋WSL2 Python 核心与 Qwen/vLLM 是推荐方案；纯 Windows 推理后置，不再作为首版发布门槛。
+- 最新客户端交付决定见产品文档第 24 节：Windows 客户端自带 Python 核心和所有客户端运行依赖，只将真实 ASR 模型配置留给外部。第 22 节的 WSL/Qwen 建议作为后续 ASR 部署参考，不是客户端启动前置。
 
 ## 3. 开发入口和运行位置
 
-代码编辑、Git、Codex 和主要开发工作统一在 WSL2，当前仓库保留在 Linux 文件系统。不为实现某个 Windows 功能要求用户维护第二套 agent、安装桌面开发应用或搬迁仓库。
+当前编辑、Git、Codex、构建和 Windows 验证在 `D:\live-translator` 继续进行，不为打包迁移仓库、建立第二套 checkout 或要求用户维护另一套 agent。早期 WSL 开发约束按其历史日期理解，后续真实 ASR 部署另行处理。
+
+本轮例外：2026-10-28 用户要求接续 Claude 在 `D:\live-translator` 留下的非模型工作，并确认沿用 uv 管理的 Windows 环境；当前编辑、运行和检查均在该 worktree，不迁移仓库、不另建 checkout。现有 `core/.venv` 使用 Anaconda 提供的 Python 3.13.5，不继承 base 的包；后续仍以 uv 管理该 Windows 项目环境。下面的 WSL 分工及旧 Windows 暂存目录是后续真实模型部署的历史基线，不要求本轮切换开发入口或配置 ASR。当前实测及授权范围以产品文档第 23 节为准。
+
+交付要求按第 24 节更新：客户端包内使用私有 CPython 和生产依赖，不引用开发 `.venv`、Anaconda、系统 Python 或 PATH 中的开发工具；缺失组件时提示重新解压完整包，不自动安装或回退到系统解释器。Windows Python 核心随包运行，WSL 只保留为后续真实 ASR 模型运行的候选位置，不是客户端启动前置。普通用户解压后双击 exe，不运行 npm/uv/pip。
 
 | 位置 | 职责 |
 | --- | --- |
 | Electron 主进程（推荐基线） | Windows 应用发现、设置/密钥、LLM HTTP 执行、受管进程及采集桥接 |
 | React＋TypeScript renderer（推荐基线） | 主窗口与 overlay 的用户意图和快照渲染；不保管密钥、不另建翻译调度 |
-| Python 字幕核心（WSL2） | 唯一拥有语义分段、翻译调度、字幕版本和历史状态；向主进程发带 request id/version 的翻译命令并接收结果 |
+| Python 字幕核心（Windows 私有运行时） | 唯一拥有语义分段、翻译调度、字幕版本和历史状态；向主进程发带 request id/version 的翻译命令并接收结果；开发用 uv，交付不引用开发环境 |
 | ASR 工作进程 | 模型加载、GPU 推理、流式识别、音频输入与识别事件、健康检查；WSL2 Qwen/vLLM 是首版推荐运行方案，Windows 原生后端列为后续 TODO |
 
 - Python 是字幕核心和 ASR 的主要语言；推荐桌面 renderer 使用 TypeScript。Node/Electron 工具链允许在获得实现授权后使用，但不得自行安装或修改全局配置，也不得把尚未确认的 npm 命令写成已存在入口。
 - WSL 沿用 Conda，项目依赖放入独立环境，禁止污染 `base`；不要为了工具统一额外迁移到 uv。
-- 自用优先，Python 字幕核心与 ASR 放在 WSL2，不要求当前 Windows 端另配 Python。纯 Windows ASR、私有 Python 打包和免 WSL 安装列为 TODO，不是首版门槛。未来如确需 Windows Python，按任务授权用 uv，不安装 Conda、不修改全局 PATH。
+- 字幕核心已随 Windows 客户端打包私有 Python，不要求用户另配解释器。真实 ASR 模型配置、GPU 与推理运行位置后置；其运行环境不与客户端私有环境或开发虚拟环境共用。开发继续用 uv，不安装新的 Conda、不修改全局 PATH。
 - Windows 本机运行、调试和构建的工作目录固定为 `D:\19054\localcapture`（WSL 默认挂载对应 `/mnt/d/19054/localcapture`，使用前核对挂载）。WSL 源码与主要开发入口保持原位；该指定不授权立即迁移仓库或建立第二套独立开发 checkout。需要暂存文件时明确范围，保留目标目录已有内容；写入需遵守当前权限边界。
 - Windows 和 Linux 分别管理解释器、环境及构建产物；不得共用虚拟环境。私有应用运行时、模型和应用分别版本化；记录依赖与模型版本，不假设两边 Python 必须同版。
 - 可从 WSL 按需调用 Windows 命令，但遵守执行权限和审批边界；互操作失败时先区分沙箱、PATH 和真实环境错误，不绕过权限。
@@ -57,7 +62,7 @@
 - ASR 能力必须按模型、运行时和版本一起核对，区分缓存增量、累计重识别/前缀回滚、整段上传后流式输出。Qwen 不假设有词级时间戳、可靠稳定提交事件或恒定推理开销；定义窗口寿命、尾部排空与跨窗口去重。模型可选目录、平台发布包和本机实时验收是不同证据。
 - 本地 WebSocket ASR v1 机器协议及其实现已建立；这不代表 Qwen 模型接入或实时识别已验收。旧 `archived/contracts/` 的 final-only 合同不能直接作为新服务合同。
 - 协议需区分会话、消息顺序、源文本版本和显示版本。停止请求不等于立即断开；明确确认、排空、超时与取消语义。建立协议后同步维护模型、解析器、Schema、示例和合同测试。
-- Windows Electron 与 WSL Python 核心之间通信待设计，受管 wsl.exe stdio JSONL 或认证本地通道为候选，不预设 Windows Python 子进程；现有 `engine.py` 的 `dispatch`/`drain_requests` 与 scheduler 的 `request_id` 只是静态适配依据，不表示 IPC 已存在。stdout 只发协议、stderr 只写脱敏日志；音频 PCM 不经 renderer 或逐样本 JSON。
+- 当前 Windows 非模型开发版已有 `host-core.v1` stdio JSONL，由 Electron 管理 `core/.venv` 的 Python 进程。真实 WSL 核心/模型的启动及通信仍待适配，不将本轮 Windows 进程验证冒充跨 WSL 验收。stdout 只发协议、stderr 只写脱敏日志；音频 PCM 不经 renderer 或逐样本 JSON。
 - Electron renderer 安全基线包括 sandbox、`contextIsolation`、`nodeIntegration=false`、校验 IPC 来源、受控本地内容和 CSP。远程直播页面不得进入特权 renderer；`desktopCapturer` 不等于进程音频隔离。
 - 应用级音频的 Win32 process loopback 是候选，Electron 窗口选择不等于进程隔离；需要时可评估应用私有的小型原生 helper，不要求普通用户自行安装开发工具链。
 
@@ -93,7 +98,9 @@
 
 ## 7. 验证和交付
 
-- 当前 Python 原型的确定性检查入口为 `python scripts/verify.py`：自动发现 `tests/test_*.py`，使用标准库 unittest，并设置 `QT_QPA_PLATFORM=offscreen` 执行 Qt 原型检查；包含本机 loopback WebSocket 集成测试，不访问外网、不安装依赖。缺少可选 `transport` 依赖时相应测试会 skip；全套检查是否运行该测试取决于环境是否安装该 extra。headless 原型运行命令为 `PYTHONPATH=src python -m live_translator --headless --scenario all`，场景列表为 `PYTHONPATH=src python -m live_translator --list-scenarios`。这些命令不等于本轮已运行，也不代表 Electron/Windows UI 已验收。不要运行归档 `scripts/check.sh` 或旧构建脚本。
+- 当前确定性检查入口为 `python scripts/verify.py`，推荐明确使用 `core\.venv\Scripts\python.exe scripts/verify.py`：运行 `core/tests` 的 pytest、桌面类型检查、构建和 Node 测试；`--desktop-smoke` 额外运行隐藏 Electron 窗口的模拟演示。检查不安装依赖、不下载模型、不调用外部服务。`core` 目录下使用 `uv run --frozen --offline python -m live_translator demo --scenario all` 运行 headless 演示，`demo --list` 列出场景；`desktop` 下 `npm start` 启动界面。第 17、18 节的 unittest/Qt 命令与 124 项结果属于旧原型，不适用于当前 `core/`。不要运行归档检查或旧构建脚本。
+- 可选的 `desktop` 下 `npm run smoke:audio` 播放受控短测试音，只采集该进程，使用预设 ASR 及本机假翻译接口；它不配置真实 ASR，不证明识别或翻译质量，也不属于常规检查的默认步骤。
+- 完整包由 `core\.venv\Scripts\python.exe scripts/package_windows.py` 构建；它在新路径、隔离开发环境变量的条件下实际运行打包 exe，验证私有运行时、DLL 依赖和模拟链，成功后才向 `dist/` 交付 ZIP 与校验清单。开发版测试通过不能代替这个交付检查。
 - 实现时先提供不需要硬件、真实密钥和外网的确定性测试：重复快照、乱序返回、修订/锁定冲突、队列过载、音频缺口、长句、停止排空和失败恢复。
 - 模拟事件走与真实输入相同的状态与显示路径；Mock、离屏 Qt 和合同测试不能证明 WASAPI、GPU、真实翻译或 Windows 桌面交互已验证。
 - 真实验收分别报告 Windows 应用/设备采集、全屏与穿透、WSL/Qwen 加载、持续识别性能、翻译质量、延迟、费用和发布包。找到工具或看到 GPU 不等于模型可持续实时。

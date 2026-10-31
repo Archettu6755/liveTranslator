@@ -1,0 +1,100 @@
+[
+  {
+    "direction": "client",
+    "message": {
+      "type": "session.start",
+      "session_id": "example-session",
+      "protocol": "asr.v1",
+      "sample_rate": 16000,
+      "channels": 1,
+      "encoding": "pcm_s16le",
+      "language": "ja"
+    }
+  },
+  {
+    "direction": "server",
+    "message": {
+      "type": "session.ready",
+      "session_id": "example-session",
+      "backend": "scripted"
+    }
+  },
+  {
+    "direction": "server",
+    "message": {
+      "type": "transcript.snapshot",
+      "session_id": "example-session",
+      "seq": 1,
+      "window_id": 1,
+      "text": "みなさんこんばんは",
+      "audio_end_ms": 800,
+      "window_final": false
+    }
+  },
+  {
+    "direction": "server",
+    "message": {
+      "type": "speech.activity",
+      "session_id": "example-session",
+      "seq": 2,
+      "audio_end_ms": 800,
+      "active": true,
+      "silence_ms": 0
+    }
+  },
+  {
+    "direction": "client",
+    "message": {
+      "type": "audio.gap",
+      "session_id": "example-session",
+      "start_sample": 12800,
+      "missing_samples": 1600
+    }
+  },
+  {
+    "direction": "server",
+    "message": {
+      "type": "runtime.overloaded",
+      "session_id": "example-session",
+      "seq": 3,
+      "dropped_audio_ms": 100
+    }
+  },
+  {
+    "direction": "client",
+    "message": {
+      "type": "session.stop",
+      "session_id": "example-session"
+    }
+  },
+  {
+    "direction": "server",
+    "message": {
+      "type": "transcript.snapshot",
+      "session_id": "example-session",
+      "seq": 4,
+      "window_id": 1,
+      "text": "みなさんこんばんは。",
+      "audio_end_ms": 900,
+      "window_final": true
+    }
+  },
+  {
+    "direction": "server",
+    "message": {
+      "type": "session.stopped",
+      "session_id": "example-session",
+      "seq": 5
+    }
+  },
+  {
+    "direction": "server",
+    "message": {
+      "type": "error",
+      "session_id": "example-session",
+      "code": "model_not_configured",
+      "message": "Model runtime is not configured",
+      "retryable": false
+    }
+  }
+]

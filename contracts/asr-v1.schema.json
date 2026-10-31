@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:live-translator:asr.v1",
+  "title": "asr.v1",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/session.start"
+    },
+    {
+      "$ref": "#/$defs/audio.gap"
+    },
+    {
+      "$ref": "#/$defs/session.stop"
+    },
+    {
+      "$ref": "#/$defs/session.ready"
+    },
+    {
+      "$ref": "#/$defs/transcript.snapshot"
+    },
+    {
+      "$ref": "#/$defs/speech.activity"
+    },
+    {
+      "$ref": "#/$defs/runtime.overloaded"
+    },
+    {
+      "$ref": "#/$defs/error"
+    },
+    {
+      "$ref": "#/$defs/session.stopped"
+    }
+  ],
+  "$defs": {
+    "session.start": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "session.start"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "protocol": {
+          "const": "asr.v1"
+        },
+        "sample_rate": {
+          "const": 16000
+        },
+        "channels": {
+          "const": 1
+        },
+        "encoding": {
+          "const": "pcm_s16le"
+        },
+        "language": {
+          "const": "ja"
+        }
+      },
+      "required": [
+        "type",
+        "session_id",
+        "protocol",
+        "sample_rate",
+        "channels",
+        "encoding",
+        "language"
+      ],
+      "additionalProperties": false
+    },
+    "audio.gap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "audio.gap"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "start_sample": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missing_samples": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "session_id",
+        "start_sample",
+        "missing_samples"
+      ],
+      "additionalProperties": false
+    },
+    "session.stop": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "session.stop"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "type",
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "session.ready": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "session.ready"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "backend": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "type",
+        "session_id",
+        "backend"
+      ],
+      "additionalProperties": false
+    },
+    "transcript.snapshot": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "transcript.snapshot"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "window_id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "text": {
+          "type": "string"
+        },
+        "audio_end_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "window_final": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "session_id",
+        "seq",
+        "window_id",
+        "text",
+        "audio_end_ms",
+        "window_final"
+      ],
+      "additionalProperties": false
+    },
+    "speech.activity": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "speech.activity"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audio_end_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "silence_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "session_id",
+        "seq",
+        "audio_end_ms",
+        "active",
+        "silence_ms"
+      ],
+      "additionalProperties": false
+    },
+    "runtime.overloaded": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "runtime.overloaded"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dropped_audio_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "session_id",
+        "seq",
+        "dropped_audio_ms"
+      ],
+      "additionalProperties": false
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "error"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "session_id",
+        "code",
+        "message",
+        "retryable"
+      ],
+      "additionalProperties": false
+    },
+    "session.stopped": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "session.stopped"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "session_id",
+        "seq"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "description": "Authenticated loopback WebSocket. JSON text messages are limited to 64 KiB on the wire. Binary frames are an unsigned little-endian uint64 start_sample followed by signed little-endian int16 mono PCM at 16000 Hz; total frame size <= 65536 bytes. No padding samples are included in the valid tail."
+}

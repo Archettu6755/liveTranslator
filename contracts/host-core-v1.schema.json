@@ -1,0 +1,1159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:live-translator:host-core.v1",
+  "title": "host-core.v1",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/command.hello"
+    },
+    {
+      "$ref": "#/$defs/command.config.update"
+    },
+    {
+      "$ref": "#/$defs/command.sources.list"
+    },
+    {
+      "$ref": "#/$defs/command.session.start"
+    },
+    {
+      "$ref": "#/$defs/command.session.stop"
+    },
+    {
+      "$ref": "#/$defs/command.demo.start"
+    },
+    {
+      "$ref": "#/$defs/command.translation.result"
+    },
+    {
+      "$ref": "#/$defs/command.shutdown"
+    },
+    {
+      "$ref": "#/$defs/event.core.ready"
+    },
+    {
+      "$ref": "#/$defs/event.command.accepted"
+    },
+    {
+      "$ref": "#/$defs/event.error"
+    },
+    {
+      "$ref": "#/$defs/event.session.stopped"
+    },
+    {
+      "$ref": "#/$defs/event.core.exiting"
+    },
+    {
+      "$ref": "#/$defs/event.snapshot"
+    },
+    {
+      "$ref": "#/$defs/event.sources.result"
+    },
+    {
+      "$ref": "#/$defs/event.translate.request"
+    }
+  ],
+  "$defs": {
+    "command.hello": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "hello"
+        },
+        "command_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "protocol": {
+          "const": "host-core.v1"
+        }
+      },
+      "required": [
+        "type",
+        "protocol"
+      ],
+      "additionalProperties": false
+    },
+    "command.config.update": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "config.update"
+        },
+        "command_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "translation": {
+          "type": "object",
+          "properties": {
+            "executor": {
+              "enum": [
+                "core_mock",
+                "host"
+              ]
+            },
+            "mode": {
+              "enum": [
+                "structured",
+                "plain"
+              ]
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "glossary": {
+          "type": "object",
+          "maxProperties": 200,
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "command.sources.list": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "sources.list"
+        },
+        "command_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "type",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "command.session.start": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "session.start"
+        },
+        "command_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "source": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "application"
+                },
+                "root_pid": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 120
+                }
+              },
+              "required": [
+                "kind",
+                "root_pid"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "output_device"
+                },
+                "device_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 120
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "asr": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "token": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 4096
+            }
+          },
+          "required": [
+            "url",
+            "token"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "source",
+        "asr"
+      ],
+      "additionalProperties": false
+    },
+    "command.session.stop": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "session.stop"
+        },
+        "command_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "command.demo.start": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "demo.start"
+        },
+        "command_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "scenario": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "type",
+        "scenario"
+      ],
+      "additionalProperties": false
+    },
+    "command.translation.result": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "translation.result"
+        },
+        "command_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "source_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 16000
+        },
+        "error": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "type",
+        "request_id"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "content"
+          ],
+          "not": {
+            "required": [
+              "error"
+            ]
+          }
+        },
+        {
+          "required": [
+            "error"
+          ],
+          "not": {
+            "required": [
+              "content"
+            ]
+          }
+        }
+      ]
+    },
+    "command.shutdown": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "shutdown"
+        },
+        "command_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    },
+    "event.core.ready": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "core.ready"
+        },
+        "protocol": {
+          "const": "host-core.v1"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "command_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "platform": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "scenarios": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              }
+            },
+            "required": [
+              "name",
+              "title",
+              "description"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 30
+        }
+      },
+      "required": [
+        "type",
+        "protocol",
+        "seq",
+        "command_id",
+        "version",
+        "platform",
+        "scenarios"
+      ],
+      "additionalProperties": false
+    },
+    "event.command.accepted": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "command.accepted"
+        },
+        "protocol": {
+          "const": "host-core.v1"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "command_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        }
+      },
+      "required": [
+        "type",
+        "protocol",
+        "seq",
+        "command_id"
+      ],
+      "additionalProperties": false
+    },
+    "event.error": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "error"
+        },
+        "protocol": {
+          "const": "host-core.v1"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "command_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      },
+      "required": [
+        "type",
+        "protocol",
+        "seq",
+        "command_id",
+        "code",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "event.session.stopped": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "session.stopped"
+        },
+        "protocol": {
+          "const": "host-core.v1"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "command_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "session_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "protocol",
+        "seq",
+        "command_id",
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "event.core.exiting": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "core.exiting"
+        },
+        "protocol": {
+          "const": "host-core.v1"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "type",
+        "protocol",
+        "seq"
+      ],
+      "additionalProperties": false
+    },
+    "event.snapshot": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "snapshot"
+        },
+        "protocol": {
+          "const": "host-core.v1"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "session_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state": {
+          "enum": [
+            "idle",
+            "running",
+            "stopping"
+          ]
+        },
+        "current": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "cue_id": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "segment_id": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "kind": {
+                  "enum": [
+                    "subtitle",
+                    "correction"
+                  ]
+                },
+                "locked": {
+                  "type": "boolean"
+                },
+                "shown_at_ms": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "expires_at_ms": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "source_incomplete": {
+                  "type": "boolean"
+                },
+                "source_diagnostic": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "corrects_cue_id": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "cue_id",
+                "segment_id",
+                "text",
+                "kind",
+                "locked",
+                "shown_at_ms",
+                "expires_at_ms",
+                "source_incomplete",
+                "source_diagnostic",
+                "corrects_cue_id",
+                "version"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "previous": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "cue_id": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "segment_id": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 4000
+                },
+                "kind": {
+                  "enum": [
+                    "subtitle",
+                    "correction"
+                  ]
+                },
+                "locked": {
+                  "type": "boolean"
+                },
+                "shown_at_ms": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "expires_at_ms": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "source_incomplete": {
+                  "type": "boolean"
+                },
+                "source_diagnostic": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "corrects_cue_id": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "cue_id",
+                "segment_id",
+                "text",
+                "kind",
+                "locked",
+                "shown_at_ms",
+                "expires_at_ms",
+                "source_incomplete",
+                "source_diagnostic",
+                "corrects_cue_id",
+                "version"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "segment_id": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "source": {
+                "type": "string"
+              },
+              "translation": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "quality": {
+                "enum": [
+                  "pending",
+                  "normal",
+                  "incomplete_translation",
+                  "failed",
+                  "skipped"
+                ]
+              },
+              "source_incomplete": {
+                "type": "boolean"
+              },
+              "source_diagnostic": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "corrections": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50
+              }
+            },
+            "required": [
+              "segment_id",
+              "source",
+              "translation",
+              "quality",
+              "source_incomplete",
+              "source_diagnostic",
+              "corrections"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 50
+        },
+        "activity": {
+          "type": "object",
+          "properties": {
+            "active_segments": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in_flight": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "pending": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "queued_cues": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "translating": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "active_segments",
+            "in_flight",
+            "pending",
+            "queued_cues",
+            "translating"
+          ],
+          "additionalProperties": false
+        },
+        "stats": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "notices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "at_ms": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "kind",
+              "at_ms"
+            ]
+          },
+          "maxItems": 20
+        },
+        "mode": {
+          "enum": [
+            "idle",
+            "live",
+            "demo"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "now_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "executor": {
+          "enum": [
+            "core_mock",
+            "host"
+          ]
+        },
+        "translation_mode": {
+          "enum": [
+            "structured",
+            "plain"
+          ]
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "capturing": {
+              "type": "boolean"
+            },
+            "asr_connected": {
+              "type": "boolean"
+            },
+            "asr_backend": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "speech_active": {
+              "type": "boolean"
+            },
+            "frames_dropped": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "gap_ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "asr_overloaded_ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "error": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "label",
+            "capturing",
+            "asr_connected",
+            "asr_backend",
+            "speech_active",
+            "frames_dropped",
+            "gap_ms",
+            "asr_overloaded_ms",
+            "error"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "protocol",
+        "seq",
+        "session_id",
+        "state",
+        "current",
+        "previous",
+        "history",
+        "activity",
+        "stats",
+        "notices",
+        "mode",
+        "version",
+        "now_ms",
+        "executor",
+        "translation_mode",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "event.sources.result": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "sources.result"
+        },
+        "protocol": {
+          "const": "host-core.v1"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "applications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "kind": {
+                "const": "application"
+              },
+              "root_pid": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "exe": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "path": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "peak": {
+                "type": "number",
+                "minimum": 0
+              },
+              "session_pids": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "maxItems": 256
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "root_pid",
+              "exe",
+              "name",
+              "path",
+              "active",
+              "peak",
+              "session_pids"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 256
+        },
+        "devices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "kind": {
+                "const": "output_device"
+              },
+              "name": {
+                "type": "string"
+              },
+              "is_default": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "name",
+              "is_default"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 256
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "protocol",
+        "seq",
+        "request_id",
+        "applications",
+        "devices"
+      ],
+      "additionalProperties": false
+    },
+    "event.translate.request": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "translate.request"
+        },
+        "protocol": {
+          "const": "host-core.v1"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "segment_id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "source_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "final": {
+          "type": "boolean"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "messages": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "enum": [
+                  "system",
+                  "user"
+                ]
+              },
+              "content": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64000
+              }
+            },
+            "required": [
+              "role",
+              "content"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "type",
+        "protocol",
+        "seq",
+        "request_id",
+        "session_id",
+        "segment_id",
+        "source_revision",
+        "final",
+        "attempt",
+        "messages"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "description": "UTF-8 stdin/stdout JSONL, <= 1048576 bytes per line, 128 input slots. All output carries a strictly increasing seq per core process. command.accepted means accepted; session.stopped confirms capture/ASR/translation draining. shutdown keeps reading translation results until core.exiting and process exit. No audio PCM or translation keys belong on this channel. command_id is optional for standalone CLI clients; the desktop supplies it on every request. Supplied translation session/version must match the immutable request."
+}

@@ -1,0 +1,30 @@
+{
+  "name": "live-translator-desktop",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Electron desktop shell for Japanese VTuber live subtitles",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "vite build",
+    "build": "npm run build:main && npm run build:renderer",
+    "typecheck": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
+    "test": "node --test dist/main/*.test.js",
+    "smoke": "npm run build && electron dist/main/smoke.js",
+    "smoke:audio": "npm run build && electron dist/main/audio-probe.js",
+    "start": "npm run build && electron ."
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "electron": "^45.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  }
+}

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "live-translator-core"
+version = "0.2.0"
+description = "Subtitle core, audio capture bridge and ASR worker for Japanese VTuber live subtitles"
+requires-python = ">=3.12"
+dependencies = [
+  "comtypes>=1.4; sys_platform == 'win32'",
+  "numpy>=2.1",
+  "soxr>=0.5",
+  "websockets>=14",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/live_translator"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
